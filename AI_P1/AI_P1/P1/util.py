@@ -195,8 +195,14 @@ class PriorityQueue:
         # If item already in priority queue with equal or lower priority, do nothing.
         # If item not in priority queue, do the same thing as self.push.
 
-        "*** YOUR CODE HERE ***"
-
+        if(item in self.heap):
+            if(self.heap[item] > priority):
+                self.heap[item] = priority
+                heapq.heapify(self.heap)
+        else:
+            self.push(item, priority)
+        
+        
 class PriorityQueueWithFunction(PriorityQueue):
     """
     Implements a priority queue with the same push/pop signature of the
