@@ -70,7 +70,6 @@ def tinyMazeSearch(problem):
     from game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
-    print(type(problem))
     return  [s, s, w, s, w, w, s, w]
 
 def depthFirstSearch(problem):
@@ -87,20 +86,40 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    toCheck = problem.getStartState()
-    fringe = util.Stack()
-    while not problem.isGoalState(toCheck):
-        for i in problem.getSuccessors(toCheck):
-            fringe.push(i)
+    # toCheck = problem.getStartState()
+    # fringe = util.Stack()
+    # expanded = {toCheck} # define a set to store the expanded nodes
+    # comingFrom = toCheck
+    # path = dict()
+    # path[comingFrom] = None
+    # while (not problem.isGoalState(toCheck)) and toCheck is not None:
+    #     successors = problem.getSuccessors(toCheck if len(toCheck) == 2 else toCheck[0])
+    #     for i in successors:
+    #         if(i not in expanded):
+    #             fringe.push(i)
+    #     comingFrom = toCheck
+    #     toCheck = getNext(fringe, 'dfs')
+    #     path[toCheck] = comingFrom
+    #     expanded.add(toCheck)
+    
+    # if toCheck is None:
+    #     print("No solution found!")
+    # else:
+    #     pathList = []
+    #     while(toCheck is not None):
+    #         pathList.append(toCheck)
+    #         toCheck = path[toCheck]
+    #     pathList.reverse()
+    #     print("path is ", pathList)
+        
         
 
-    
 
     # print("Start:", problem.getStartState())
     # print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     # print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
@@ -130,3 +149,11 @@ bfs = breadthFirstSearch
 dfs = depthFirstSearch
 astar = aStarSearch
 ucs = uniformCostSearch
+
+# def getNext(fringe, algo : str):
+#     try:
+#         if(algo == 'dfs'):
+#             return fringe.pop()
+#     except:
+#         return None
+    
