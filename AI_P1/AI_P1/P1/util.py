@@ -147,6 +147,12 @@ class Stack:
         "Returns true if the stack is empty"
         return len(self.list) == 0
 
+    def getList(self):
+        return self.list
+
+    def __str__(self) -> str:
+        return str(self.list)
+
 class Queue:
     "A container with a first-in-first-out (FIFO) queuing policy."
     def __init__(self):

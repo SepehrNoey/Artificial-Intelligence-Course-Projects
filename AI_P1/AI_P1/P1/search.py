@@ -86,40 +86,58 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    # toCheck = problem.getStartState()
-    # fringe = util.Stack()
-    # expanded = {toCheck} # define a set to store the expanded nodes
-    # comingFrom = toCheck
-    # path = dict()
-    # path[comingFrom] = None
-    # while (not problem.isGoalState(toCheck)) and toCheck is not None:
-    #     successors = problem.getSuccessors(toCheck if len(toCheck) == 2 else toCheck[0])
-    #     for i in successors:
-    #         if(i not in expanded):
-    #             fringe.push(i)
-    #     comingFrom = toCheck
-    #     toCheck = getNext(fringe, 'dfs')
-    #     path[toCheck] = comingFrom
-    #     expanded.add(toCheck)
+    from util import Stack as Stk
+    pathStack = Stk()
+    successorCountStack = Stk()
+    fringe = Stk()
+    expanded = set()
     
-    # if toCheck is None:
-    #     print("No solution found!")
-    # else:
-    #     pathList = []
-    #     while(toCheck is not None):
-    #         pathList.append(toCheck)
-    #         toCheck = path[toCheck]
-    #     pathList.reverse()
-    #     print("path is ", pathList)
-        
-        
+    # adding start's successors separately
+    successorCountStack.push(len(problem.getSuccessors(problem.getStartState())))
+    expanded.add(problem.getStartState())
+    for j in problem.getSuccessors(problem.getStartState()):
+        fringe.push(j)
 
+    # start searching on others
+    while(not fringe.isEmpty()):
+        (nextPos, action, _) = fringe.pop()
+        expanded.add(nextPos)
+        if(problem.isGoalState(nextPos)):
+            pathStack.push(action)
+            break
+        else:
+            # updating successorCountStack of parent state
+            mustUpdate = successorCountStack.pop()
+            if(mustUpdate == 0):
+                # so the poped node from fringe, wasn't from parent's children
+                p = pathStack.pop()
+                while(True):
+                    poped = successorCountStack.pop()
+                    if(poped != 0):
+                        successorCountStack.push(poped - 1)
+                        pathStack.push(action)
+                        break
+                    else:
+                        p = pathStack.pop()
 
-    # print("Start:", problem.getStartState())
-    # print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    # print("Start's successors:", problem.getSuccessors(problem.getStartState()))
-    "*** YOUR CODE HERE ***"
-    # util.raiseNotDefined()
+                        
+            else:
+                successorCountStack.push(mustUpdate - 1)
+                pathStack.push(action)
+
+                # so the poped node from fringe, was a child of parent
+            
+            # now, calculating notExpandedChildren of poped node , and pushing them into fringe and successorCountStack
+            notExpndSucc = 0
+            succCandidates = problem.getSuccessors(nextPos)
+            for i in range(len(succCandidates)):
+                if (succCandidates[i][0] not in expanded):
+                    notExpndSucc += 1
+                    fringe.push(succCandidates[i])
+            successorCountStack.push(notExpndSucc)
+
+    return pathStack.getList()
+    
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
@@ -149,11 +167,3 @@ bfs = breadthFirstSearch
 dfs = depthFirstSearch
 astar = aStarSearch
 ucs = uniformCostSearch
-
-# def getNext(fringe, algo : str):
-#     try:
-#         if(algo == 'dfs'):
-#             return fringe.pop()
-#     except:
-#         return None
-    
