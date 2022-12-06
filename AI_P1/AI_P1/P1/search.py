@@ -87,7 +87,7 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     from util import Stack as Stk
-    return search(problem, Stk(), Stk(), Stk())
+    return search(problem, Stk())
     
 
 def breadthFirstSearch(problem):
@@ -117,50 +117,40 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     util.raiseNotDefined()
 
 
-def search(problem, fringe, pathHandler, successorCountHandler=None):
+def search(problem, fringe):
     # adding start's successors separately
     expanded = set()
-    successorCountHandler.push(len(problem.getSuccessors(problem.getStartState())))
     expanded.add(problem.getStartState())
     for j in problem.getSuccessors(problem.getStartState()):
-        fringe.push(j)
+        ls = []
+        ls.append(j)
+        fringe.push(ls)
 
     # start searching on others
+    currPath = None
     while(not fringe.isEmpty()):
-        (nextPos, action, _) = fringe.pop()
-        expanded.add(nextPos)
-        if(problem.isGoalState(nextPos)):
-            pathHandler.push(action)
+        currPath = fringe.pop()
+        (lastPos,_,_) = currPath[-1]
+        expanded.add(lastPos)
+        if(problem.isGoalState(lastPos)):
             break
         else:
             # updating successorCountStack of parent state
-            mustUpdate = successorCountHandler.pop()
-            if(mustUpdate == 0):
-                # so the poped node from fringe, wasn't from parent's children
-                pathHandler.pop()
-                while(True):
-                    poped = successorCountHandler.pop()
-                    if(poped != 0):
-                        successorCountHandler.push(poped - 1)
-                        pathHandler.push(action)
-                        break
-                    else:
-                        pathHandler.pop()
-            else:
-                successorCountHandler.push(mustUpdate - 1)
-                pathHandler.push(action)
+            for next in problem.getSuccessors(lastPos):
+                if(next[0] not in expanded):
+                    copy = list(currPath)
+                    copy.append(next)
+                    fringe.push(copy)
 
-            # now, calculating notExpandedChildren of poped node , and pushing them into fringe and successorCountStack
-            notExpndSucc = 0
-            succCandidates = problem.getSuccessors(nextPos)
-            for i in range(len(succCandidates)):
-                if (succCandidates[i][0] not in expanded):
-                    notExpndSucc += 1
-                    fringe.push(succCandidates[i])
-            successorCountHandler.push(notExpndSucc)
+    return listToDirection(currPath)
 
-    return pathHandler.getList()    
 
+def listToDirection(stateList):
+    dirs = []
+    for state in stateList:
+        dirs.append(state[1])
+
+    return dirs
 
 # Abbreviations
 bfs = breadthFirstSearch
