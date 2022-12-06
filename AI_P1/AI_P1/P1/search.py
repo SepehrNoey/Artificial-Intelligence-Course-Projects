@@ -93,11 +93,7 @@ def depthFirstSearch(problem):
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     from util import Queue as Q
-    # search()
-    # fringe = Q()
-    # expanded = set()
-    # added = set()
-    
+    return search(problem, Q())
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
