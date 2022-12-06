@@ -173,6 +173,9 @@ class Queue:
         "Returns true if the queue is empty"
         return len(self.list) == 0
 
+    def getList(self):
+        return self.list
+
 class PriorityQueue:
     """
       Implements a priority queue data structure. Each inserted item
