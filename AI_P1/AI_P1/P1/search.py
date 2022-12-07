@@ -97,8 +97,8 @@ def breadthFirstSearch(problem):
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import PriorityQueueWithFunction as PQF
+    return search(problem, PQF(lambda x: problem.getCostOfActions(listToDirection(x))))
 
 def nullHeuristic(state, problem=None):
     """
