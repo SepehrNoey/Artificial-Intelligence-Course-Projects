@@ -234,6 +234,12 @@ def manhattanDistance( xy1, xy2 ):
   The search project should not need anything below this line.
 """
 
+def euclideanDistance( xy1, xy2):  # this function is written by Sepehr Noey (added to util)
+    "Returns the Euclidean distance between points xy1 and xy2"
+
+    import math
+    return math.sqrt((xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2)
+
 class Counter(dict):
     """
     A counter keeps track of counts for a set of keys.
