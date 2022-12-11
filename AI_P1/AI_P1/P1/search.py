@@ -110,7 +110,7 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     from util import PriorityQueueWithFunction as PQF
-    return search(problem, PQF(lambda x: problem.getCostOfActions(listToDirection(x)) + heuristic(x[-1], problem)))
+    return search(problem, PQF(lambda x: problem.getCostOfActions(listToDirection(x)) + heuristic(x[-1][0], problem)))
 
 def search(problem, fringe):
     # adding start's successors separately

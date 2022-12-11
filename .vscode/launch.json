@@ -10,7 +10,7 @@
             "console": "integratedTerminal",
             "args": [
                 "--zoom=.5",
-                "--agentArgs=fn=astar",
+                "--agentArgs=fn=astar,heuristic=euclideanHeuristic",
                 "--pacman=SearchAgent",
                 "--layout=bigMaze"
             ],

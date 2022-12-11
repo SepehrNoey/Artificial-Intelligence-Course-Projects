@@ -254,14 +254,14 @@ def manhattanHeuristic(position, problem, info={}):
     "The Manhattan distance heuristic for a PositionSearchProblem"
     
     from util import manhattanDistance as md
-    return md(problem.goal, position[0])
+    return md(problem.goal, position)
     
 
 def euclideanHeuristic(position, problem, info={}):
     "The Euclidean distance heuristic for a PositionSearchProblem"
     
     from util import euclideanDistance as ed
-    return ed(problem.goal, position[0])
+    return ed(problem.goal, position)
 
 
 #####################################################
@@ -297,7 +297,6 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
 
     def isGoalState(self, state):
         """
