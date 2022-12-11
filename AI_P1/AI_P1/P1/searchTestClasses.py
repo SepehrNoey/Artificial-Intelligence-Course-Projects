@@ -71,6 +71,7 @@ class GraphSearch(SearchProblem):
             raise Exception("GraphSearch graph specification goal_states not found or incorrect on line 1")
         goals = r.group(1).split()
         self.goals = [str.strip(g) for g in goals]
+        print("goals:", self.goals)
         self.successors = {}
         all_states = set()
         self.orderedSuccessorTuples = []

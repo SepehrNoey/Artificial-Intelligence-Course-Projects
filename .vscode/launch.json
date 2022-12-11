@@ -10,9 +10,9 @@
             "console": "integratedTerminal",
             "args": [
                 "--zoom=.5",
-                "--agentArgs=fn=astar,heuristic=manhattanHeuristic",
+                "--agentArgs=fn=astar",
                 "--pacman=SearchAgent",
-                "--layout=openMaze"
+                "--layout=bigMaze"
             ],
         }
     ]
