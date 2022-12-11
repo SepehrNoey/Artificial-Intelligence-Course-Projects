@@ -127,6 +127,8 @@ def search(problem, fringe):
     while(not fringe.isEmpty()):
         currPath = fringe.pop()
         (lastPos,_,_) = currPath[-1]
+        if(lastPos in expanded):
+            continue
         expanded.add(lastPos)
         if(problem.isGoalState(lastPos)):
             break
