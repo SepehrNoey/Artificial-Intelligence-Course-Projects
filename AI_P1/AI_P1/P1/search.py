@@ -116,7 +116,11 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     from util import PriorityQueueWithFunction as PQF
-    return search(problem, PQF(lambda x: problem.getCostOfActions(listToDirection(x)) + heuristic(x[-1][0], problem)))
+    from searchAgents import CornersProblem
+    if(isinstance(problem, CornersProblem)):
+        return corners_astar(problem, PQF(lambda x: problem.getCostOfActions(x[1]) + heuristic(x[0], problem)))
+    else:
+        return search(problem, PQF(lambda x: problem.getCostOfActions(listToDirection(x)) + heuristic(x[-1][0], problem)))
 
 def search(problem, fringe):
     # adding start's successors separately
@@ -163,13 +167,32 @@ def corners_dfs(problem, fringe):
 
         if problem.isGoalState(position):
             break
-        for item in problem.getSuccessors(position):
-            if item[0] not in expanded:
-                print("item 2", item[2])
-                new_position = item[0]
-                new_path = currPath + [item[1]]
-                fringe.push((new_position, new_path, item[2]))
+        for next in problem.getSuccessors(position):
+            if next[0] not in expanded:
+                newPath = currPath + [next[1]]
+                fringe.push((next[0], newPath, next[2]))
     
+    return currPath
+
+def corners_astar(problem, fringe):
+    expanded = []
+    currPath = []
+    fringe.push((problem.getStartState(), currPath))
+
+    while not fringe.isEmpty():
+        current_node = fringe.pop()
+        position = current_node[0]
+        currPath = current_node[1]
+        if problem.isGoalState(position):
+            break
+
+        if position not in expanded:
+            expanded.append(position)
+            for item in problem.getSuccessors(position):
+                if item[0] not in expanded:
+                    new_path = currPath + [item[1]]
+                    fringe.push((item[0], new_path))
+
     return currPath
 
 
