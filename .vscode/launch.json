@@ -9,10 +9,9 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "--zoom=.5",
-                "--agentArgs=fn=astar,heuristic=euclideanHeuristic",
+                "--agentArgs=fn=dfs,prob=CornersProblem",
                 "--pacman=SearchAgent",
-                "--layout=bigMaze"
+                "--layout=tinyCorners"
             ],
         }
     ]

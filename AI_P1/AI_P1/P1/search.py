@@ -87,7 +87,13 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     from util import Stack as Stk
-    return search(problem, Stk())
+    from searchAgents import CornersProblem
+    from util import PriorityQueueWithFunction as PQF
+    from searchAgents import cornersHeuristic as ch
+    if(isinstance(problem, CornersProblem)):
+        return corners_dfs(problem, Stk())
+    else:
+        return search(problem, Stk())
     
 
 def breadthFirstSearch(problem):
@@ -140,6 +146,31 @@ def search(problem, fringe):
                     fringe.push(copy)
 
     return listToDirection(currPath)
+
+def corners_dfs(problem, fringe):
+    expanded = []
+    currPath = []
+
+    # start position
+    fringe.push((problem.getStartState(), currPath, 0))
+
+    while not fringe.isEmpty():
+        current_node = fringe.pop()
+        position = current_node[0]
+        currPath = current_node[1]
+        if position not in expanded:
+            expanded.append(position)
+
+        if problem.isGoalState(position):
+            break
+        for item in problem.getSuccessors(position):
+            if item[0] not in expanded:
+                print("item 2", item[2])
+                new_position = item[0]
+                new_path = currPath + [item[1]]
+                fringe.push((new_position, new_path, item[2]))
+    
+    return currPath
 
 
 def listToDirection(stateList):
