@@ -87,13 +87,7 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     from util import Stack as Stk
-    from searchAgents import CornersProblem
-    from util import PriorityQueueWithFunction as PQF
-    from searchAgents import cornersHeuristic as ch
-    if(isinstance(problem, CornersProblem)):
-        return corners_dfs(problem, Stk())
-    else:
-        return search(problem, Stk())
+    return search(problem, Stk())
     
 
 def breadthFirstSearch(problem):
@@ -104,7 +98,7 @@ def breadthFirstSearch(problem):
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     from util import PriorityQueueWithFunction as PQF
-    return search(problem, PQF(lambda x: problem.getCostOfActions(listToDirection(x))))
+    return search(problem, PQF(lambda x: problem.getCostOfActions(x[1])))
 
 def nullHeuristic(state, problem=None):
     """
@@ -116,65 +110,9 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     from util import PriorityQueueWithFunction as PQF
-    from searchAgents import CornersProblem
-    if(isinstance(problem, CornersProblem)):
-        return corners_astar(problem, PQF(lambda x: problem.getCostOfActions(x[1]) + heuristic(x[0], problem)))
-    else:
-        return search(problem, PQF(lambda x: problem.getCostOfActions(listToDirection(x)) + heuristic(x[-1][0], problem)))
+    return search(problem, PQF(lambda x: problem.getCostOfActions(x[1]) + heuristic(x[0], problem)))
 
 def search(problem, fringe):
-    # adding start's successors separately
-    expanded = set()
-    expanded.add(problem.getStartState())
-    for j in problem.getSuccessors(problem.getStartState()):
-        ls = []
-        ls.append(j)
-        fringe.push(ls)
-
-    # start searching on others
-    currPath = None
-    while(not fringe.isEmpty()):
-        currPath = fringe.pop()
-        (lastPos,_,_) = currPath[-1]
-        if(lastPos in expanded):
-            continue
-        expanded.add(lastPos)
-        if(problem.isGoalState(lastPos)):
-            break
-        else:
-            # updating successorCountStack of parent state
-            for next in problem.getSuccessors(lastPos):
-                if(next[0] not in expanded):
-                    copy = list(currPath)
-                    copy.append(next)
-                    fringe.push(copy)
-
-    return listToDirection(currPath)
-
-def corners_dfs(problem, fringe):
-    expanded = []
-    currPath = []
-
-    # start position
-    fringe.push((problem.getStartState(), currPath, 0))
-
-    while not fringe.isEmpty():
-        current_node = fringe.pop()
-        position = current_node[0]
-        currPath = current_node[1]
-        if position not in expanded:
-            expanded.append(position)
-
-        if problem.isGoalState(position):
-            break
-        for next in problem.getSuccessors(position):
-            if next[0] not in expanded:
-                newPath = currPath + [next[1]]
-                fringe.push((next[0], newPath, next[2]))
-    
-    return currPath
-
-def corners_astar(problem, fringe):
     expanded = []
     currPath = []
     fringe.push((problem.getStartState(), currPath))
@@ -188,20 +126,13 @@ def corners_astar(problem, fringe):
 
         if position not in expanded:
             expanded.append(position)
-            for item in problem.getSuccessors(position):
-                if item[0] not in expanded:
-                    new_path = currPath + [item[1]]
-                    fringe.push((item[0], new_path))
+            for next in problem.getSuccessors(position):
+                if next[0] not in expanded:
+                    newPath = currPath + [next[1]]
+                    fringe.push((next[0], newPath, next[2]))
 
     return currPath
 
-
-def listToDirection(stateList):
-    dirs = []
-    for state in stateList:
-        dirs.append(state[1])
-
-    return dirs
 
 # Abbreviations
 bfs = breadthFirstSearch
