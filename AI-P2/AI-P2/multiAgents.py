@@ -15,8 +15,9 @@
 from util import manhattanDistance
 from game import Directions
 import random, util
-
 from game import Agent
+
+path = []
 
 class ReflexAgent(Agent):
     """
@@ -48,6 +49,8 @@ class ReflexAgent(Agent):
         chosenIndex = random.choice(bestIndices) # Pick randomly among the best
 
         "Add more of your code here if you want to"
+        from multiAgents import path
+        path.append(gameState.generatePacmanSuccessor(legalMoves[chosenIndex]).getPacmanPosition())
 
         return legalMoves[chosenIndex]
 
@@ -74,7 +77,54 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        from sys import maxsize
+        from multiAgents import path
+        from statistics import pvariance, mean
+        from random import uniform
+        from math import sqrt
+        currFoodList = currentGameState.getFood().asList()
+        newFoodList = newFood.asList()
+        currPos = currentGameState.getPacmanPosition()
+
+        # order of badness: dieing > going to visited places > being close to ghosts
+        # order of goodness: eating dots > eating scared ghosts
+        # now , we will find the closest not eaten dot
+        currManList = getManhattanList(currPos, currFoodList)
+        minDist = min(currManList)
+        minIdx = currManList.index(minDist)
+        newManList = getManhattanList(newPos, newFoodList)
+        currGhostStates = currentGameState.getGhostStates()
+        ghostManList = getManhattanList(newPos, [ghost.getPosition() for ghost in newGhostStates])
+        conflicts = False
+        for (currGhost, newGhost) in zip(currGhostStates, newGhostStates):
+            if currGhost.getPosition() == newPos or newGhost.getPosition() == newPos:
+                conflicts = True
+                break
+
+        if not conflicts: 
+            if len(path) > 0 and newPos == path[-1]:
+                return -maxsize # we shouldn't stop, but its badness is less than dieing
+            
+            # we are getting closer to dot -> so it's good! -> maximum score
+            goodWay = 1 if minIdx >= len(newManList) or newManList[minIdx] < currManList[minIdx] else 0
+            indexPlusOne = 0
+            score = 0
+            if newPos in path:
+                indexPlusOne = max(index for index, item in enumerate(path) if item == newPos) + 1
+            
+            condition = len(ghostManList) > 0
+            ghostMeanDist = mean(ghostManList) if condition else 0
+            ghostPvar = pvariance(ghostManList) if condition else 0
+            scareOnDistList = [newScaredTimes[i] / item for (i, item) in enumerate(ghostManList)]
+            condition = len(newManList) > 0
+            pvar = pvariance(newManList) if condition else 0
+            mn = mean(newManList) if condition else 0
+            score = 5 * goodWay + 7 * mean(scareOnDistList) + ghostMeanDist - sqrt(ghostPvar)\
+                -sqrt(pvar) - mn - indexPlusOne - uniform(0, 1)
+            return score
+
+        else:
+            return -maxsize - 1 # we shouldn't die -> return minimum score
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -184,3 +234,11 @@ def betterEvaluationFunction(currentGameState):
 
 # Abbreviation
 better = betterEvaluationFunction
+
+
+def getManhattanList(point, ls):
+    man_ls = []
+    for pos in ls:
+        man_ls.append(manhattanDistance(point, pos))
+    
+    return man_ls

@@ -9,9 +9,8 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "--agentArgs=fn=dfs,prob=CornersProblem",
-                "--pacman=SearchAgent",
-                "--layout=tinyCorners"
+                "--pacman=ReflexAgent",
+                "--numghosts=1",
             ],
         }
     ]
