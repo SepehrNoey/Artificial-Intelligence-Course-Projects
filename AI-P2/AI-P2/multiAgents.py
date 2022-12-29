@@ -16,6 +16,7 @@ from util import manhattanDistance
 from game import Directions
 import random, util
 from game import Agent
+from enum import Enum
 
 path = []
 
@@ -185,7 +186,21 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        agentTypes = {0:NodeType.MAXIMIZER}
+        addedDepths = 1
+        while addedDepths < gameState.getNumAgents():
+            addedDepths += 1
+            agentTypes[addedDepths - 1] = NodeType.MINIMIZER
+
+        tree = Tree(gameState, self.evaluationFunction, agentTypes, self.depth + 1, prune=False)
+        # "--pacman=MinimaxAgent",
+        #         "--layout=minimaxClassic",
+        #         "--agentArgs=depth=4",
+        chosenValue = tree.find()
+        chosenAction = tree.getChosenAction()
+        return chosenAction
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -242,3 +257,147 @@ def getManhattanList(point, ls):
         man_ls.append(manhattanDistance(point, pos))
     
     return man_ls
+
+def checkPrune(nodeType, v, alpha, beta):
+    if nodeType == NodeType.MAXIMIZER:
+        if v >= beta:
+            return True
+        return False
+    elif nodeType == NodeType.MINIMIZER:
+        if v <= alpha:
+            return True
+        return False
+        
+class NodeType(Enum):
+    MAXIMIZER = 'MAXIMIZER'
+    MINIMIZER = 'MINIMIZER'
+    CHANCE_NODE = 'CHANCE_NODE'
+
+
+# an abstract class
+class Node:
+    def __init__(self, myRootState, evalFunc=scoreEvaluationFunction, value=None, id=0, agentTypes=None, depth = 2, prune=False, alpha=None, beta=None):
+        self.myRootState = myRootState
+        self.depth = depth
+        self.value = value
+        self.prune = prune
+        self.children = []
+        self.evalFunc = evalFunc
+        self.alpha = alpha
+        self.beta = beta
+        self.valueSet = False
+        self.chosenList = []
+        self.id = id
+        self.agentTypes = agentTypes
+        
+    def getValue(self, id):
+        if self.valueSet:
+            return self.value
+        
+        if (id == 0 and self.depth == 0) or self.myRootState.isWin() or self.myRootState.isLose(): # the terminal (or pseudo terminal) nodes
+            self.value = self.evalFunc(self.myRootState)
+            self.valueSet = True
+        else:
+            legalActions = self.myRootState.getLegalActions(id)
+            for action in legalActions:
+                successorState = self.myRootState.generateSuccessor(id, action)
+                givenDepth = self.depth - 1 if self.id == 0 else self.depth
+                child = Tree.makeNode(successorState, self.evalFunc, self.id, self.agentTypes, givenDepth, self.prune, self.alpha, self.beta)
+                self.children.append(child)
+                childValue = child.getValue((id + 1) % self.myRootState.getNumAgents())
+                changed = self.updateValue(childValue)
+                self.valueSet = True
+                if changed or (len(self.chosenList) == 0 or (childValue == self.value and action != Directions.STOP and self.chosenList[-1] == Directions.STOP)):
+                    self.chosenList.append(action)
+                if self.prune:
+                    if checkPrune(self.agentTypes[self.id], childValue, self.alpha, self.beta):
+                        return self.value
+                    else:
+                        self.updateAlphaBeta()
+
+        return self.value
+                    
+    def updateValue(self, newValue):
+        pass # abstract method
+
+    def updateAlphaBeta(self):
+        pass # abstract method
+
+class Minimizer(Node):
+    def __init__(self, myRootState, evalFunc=scoreEvaluationFunction, value=None, id=0, agentTypes=None, depth=2, prune=False, alpha=None, beta=None):
+        super().__init__(myRootState, evalFunc, value, id, agentTypes, depth, prune, alpha, beta)
+
+    def updateValue(self, newValue):
+        valCopy = self.value
+        self.value = min(self.value, newValue)
+        if valCopy != self.value:
+            return True
+        return False
+
+    def updateAlphaBeta(self):
+        self.beta = min(self.beta, self.value)
+
+class Maximizer(Node):
+    def __init__(self, myRootState, evalFunc=scoreEvaluationFunction, value=None, id=0, agentTypes=None, depth=2, prune=False, alpha=None, beta=None):
+        super().__init__(myRootState, evalFunc, value, id, agentTypes, depth, prune, alpha, beta)
+
+    def updateValue(self, newValue):
+        valCopy = self.value
+        self.value = max(self.value, newValue)
+        if valCopy != self.value:
+            return True
+        return False
+
+    def updateAlphaBeta(self):
+        self.alpha = max(self.alpha, self.value)
+
+class ChanceNode(Node):
+    def __init__(self, myRootState, evalFunc=scoreEvaluationFunction, value=None, id=0, agentTypes=None, depth=2, prune=False, alpha=None, beta=None):
+        super().__init__(myRootState, evalFunc, value, id, agentTypes, depth, prune, alpha, beta)
+
+    
+class Tree:
+    def __init__(self, rootState, evalFunc=scoreEvaluationFunction, agentTypes = {0:NodeType.MAXIMIZER}, depth = 2, prune=False):
+        self.rootState = rootState
+        self.agentTypes = agentTypes
+        self.depth = depth
+        self.prune = prune
+
+        if len(self.agentTypes) <= 0:
+            print("Invalid agentTypes length.")
+            exit(-1)
+        else:
+            alpha = None
+            beta = None
+            if prune:
+                from sys import maxsize
+                alpha = -maxsize - 1
+                beta = maxsize
+
+            self.root = Tree.makeNode(rootState, evalFunc, 0, agentTypes, self.depth - 1, self.prune, alpha, beta)
+
+    def find(self):
+        return self.root.getValue(0)
+
+    def getChosenAction(self):
+        return self.root.chosenList[-1]
+
+    @classmethod
+    def makeNode(cls, state, evalFunc, callerID, agentTypes, depth, prune, alpha, beta):
+        from sys import maxsize
+        node = None
+        type = agentTypes[callerID]
+        newID = (callerID + 1) % state.getNumAgents()
+        if type == NodeType.MAXIMIZER:
+            node = Maximizer(state, evalFunc, -maxsize -1, newID, agentTypes, depth, prune, alpha, beta)
+        elif type == NodeType.MINIMIZER:
+            node = Minimizer(state, evalFunc, maxsize, newID, agentTypes, depth, prune, alpha, beta)
+        elif type == NodeType.CHANCE_NODE:
+            node = ChanceNode(state, evalFunc, 0, newID, agentTypes, depth, prune, alpha, beta)
+        else:
+            print("Invalid NodeType is entered.")
+            exit(-1)
+
+        return node
+
+            
