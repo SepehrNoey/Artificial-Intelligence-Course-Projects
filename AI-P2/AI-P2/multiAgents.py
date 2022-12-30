@@ -235,7 +235,20 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        agentTypes = {0:NodeType.MAXIMIZER}
+        addedDepths = 1
+        while addedDepths < gameState.getNumAgents():
+            addedDepths += 1
+            agentTypes[addedDepths - 1] = NodeType.CHANCE_NODE
+
+        tree = Tree(gameState, self.evaluationFunction, agentTypes, self.depth + 1, prune=False)
+        _ = tree.find()
+        return tree.getChosenAction()
+                #         "--pacman=ExpectimaxAgent",
+                # "--layout=smallClassic",
+                # "--agentArgs=depth=2",
+
 
 def betterEvaluationFunction(currentGameState):
     """
@@ -307,35 +320,22 @@ class Node:
         if (id == 0 and self.depth == 0) or self.myRootState.isWin() or self.myRootState.isLose(): 
             self.value = self.evalFunc(self.myRootState)
             self.valueSet = True
-            # print("In terminal value:", self.value, "has been found, depth:", self.depth)
-            # sleep(0.1)
         else:
             legalActions = self.myRootState.getLegalActions(id)
             for action in legalActions:
                 successorState = self.myRootState.generateSuccessor(id, action)
-                # print("going to check action:", action, "myID:", id, "myDepth:", self.depth)
-                # sleep(0.1)
                 givenDepth = self.depth - 1 if self.id == self.myRootState.getNumAgents() - 1 else self.depth # changed here!!!
                 child = Tree.makeNode(successorState, self.evalFunc, self.id, self.agentTypes, givenDepth, self.prune,\
                      self.alpha, self.beta)
                 self.children.append(child)
                 childValue = child.getValue((id + 1) % self.myRootState.getNumAgents())
-                # print("child value returned:", childValue, "myID:", id, "myDepth:", self.depth)
-                # sleep(0.1)
-
                 changed = self.updateValue(childValue)
                 # updating chosen action
                 if changed:
                     self.chosenAction = action
                     self.valueSet = True
-                    # if self.depth == 3:
-                    #     print("myVal changed to:", self.value, ", depth:", self.depth)
                 if self.prune:
                     if checkPrune(self.agentTypes[self.id], self.value, self.alpha, self.beta):
-                        # print("pruned, myID:", id, "myAlpha:", self.alpha, "myBeta:", self.beta, "myDepth:", self.depth)
-                        # sleep(0.1)
-                        print("pruned, self.value:", self.value, "alpha:", self.alpha, "beta:", self.beta, "myType:", self.agentTypes[self.id], "depth:", self.depth)
-
                         return self.value
                     else:
                         self.updateAlphaBeta()
@@ -383,6 +383,16 @@ class ChanceNode(Node):
          depth=2, prune=False, alpha=None, beta=None):
         super().__init__(myRootState, evalFunc, value, id, agentTypes, depth, prune, alpha, beta)
 
+    def updateValue(self, newValue):
+        valCopy = self.value
+        actionsNum = len(self.myRootState.getLegalActions(self.id))
+        if actionsNum == 0:
+            return False
+        
+        self.value += newValue / actionsNum
+        if valCopy != self.value:
+            return True
+        return False
     
 class Tree:
     def __init__(self, rootState, evalFunc=scoreEvaluationFunction, agentTypes = {0:NodeType.MAXIMIZER},\

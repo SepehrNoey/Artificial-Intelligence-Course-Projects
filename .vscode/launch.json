@@ -9,9 +9,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "--pacman=AlphaBetaAgent",
-                "--layout=smallClassic",
-                "--agentArgs=depth=2",
+                "--question=q4",
             ],
         }
     ]
