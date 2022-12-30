@@ -12,6 +12,7 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+import datetime
 from util import manhattanDistance
 from game import Directions
 import random, util
@@ -265,50 +266,30 @@ def betterEvaluationFunction(currentGameState):
     scaredTimers = [ghostState.scaredTimer for ghostState in ghostStates]
     ghostPositions = currentGameState.getGhostPositions()
     
-    "*** YOUR CODE HERE ***"
+    # "*** YOUR CODE HERE ***"
 
-    # order of badness: dieing > going to visited places > being close to ghosts
-    # order of goodness: eating dots > eating scared ghosts
-    # now , we will find the closest not eaten dot
-    from sys import maxsize
-    from statistics import pvariance
-    from statistics import mean
-    from math import sqrt
-    from random import uniform
-    
-    max_ = maxsize
-    min_ = -maxsize - 1
-    score = 0
-    ghostManList = getManhattanList(pacmanPosition, ghostPositions)
-    foodList = foods.asList()
-    foodNum = len(foodList)
-    capsulesList = currentGameState.getCapsules()
-    capsulesManList = getManhattanList(pacmanPosition, capsulesList)
-    capsulesNum = len(capsulesManList)
-    foodManList = getManhattanList(pacmanPosition, foodList)
-    minFoodDist = min(foodManList)
-    nearestFood = foodManList.index(minFoodDist)
-    minCapsuleDist = min(capsulesManList)
-    nearestCapsule = capsulesManList.index(minCapsuleDist)
-    # ghostVar = pvariance(ghostManList) if len(ghostManList) > 0 else 0
-    # foodVar = pvariance(foodManList) if len(foodManList) > 0 else 0
-    scaredMean = mean(scaredTimers) if len(scaredTimers) > 0 else 0
-    # foodDistMean = mean(foodManList) if len(foodManList) > 0 else 0
+    # adding score of food
+    score = currentGameState.getScore()
+    foodScoreList = [2 ** -dist for dist in getManhattanList(pacmanPosition, foods.asList())]
+    score += max(foodScoreList) if len(foodScoreList) > 0 else 0
 
-    if(currentGameState.isWin()):
-        return max_
-    elif(currentGameState.isLose()):
-        return min_
-    else:
-        score += sum(ghostManList) - 15 * foodNum - 5 * sum(foodManList) \
-            - nearestFood - 10 * capsulesNum - 5 * nearestCapsule \
-            + 6 * scaredMean - uniform(0, 10) + currentGameState.getScore()
-            
+    # adding score of being far away or eating ghosts
+    ghostsManList = getManhattanList(pacmanPosition, ghostPositions)
+    for i, dist in enumerate(ghostsManList):
+        if scaredTimers[i] > 0:
+            score += max(8 - dist, 0) ** 2
+        else:
+            score -= max(7 - dist, 0) ** 2
+
+    # adding score of eating capsules
+    capsulesManList = getManhattanList(pacmanPosition, currentGameState.getCapsules())
+    capsulesScoreList = [50.0 / dist for dist in capsulesManList]
+    score += max(capsulesScoreList) if len(capsulesScoreList) > 0 else 0
+
     return score
 
 # Abbreviation
 better = betterEvaluationFunction
-
 
 def getManhattanList(point, ls):
     man_ls = []
