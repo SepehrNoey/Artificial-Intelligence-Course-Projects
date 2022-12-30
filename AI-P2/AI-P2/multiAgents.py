@@ -194,12 +194,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
             agentTypes[addedDepths - 1] = NodeType.MINIMIZER
 
         tree = Tree(gameState, self.evaluationFunction, agentTypes, self.depth + 1, prune=False)
-        # "--pacman=MinimaxAgent",
-        #         "--layout=minimaxClassic",
-        #         "--agentArgs=depth=4",
-        chosenValue = tree.find()
-        chosenAction = tree.getChosenAction()
-        return chosenAction
+        _ = tree.find()
+        return tree.getChosenAction()
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
@@ -212,7 +208,19 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        agentTypes = {0:NodeType.MAXIMIZER}
+        addedDepths = 1
+        while addedDepths < gameState.getNumAgents():
+            addedDepths += 1
+            agentTypes[addedDepths - 1] = NodeType.MINIMIZER
+
+        tree = Tree(gameState, self.evaluationFunction, agentTypes, self.depth + 1, prune=True)
+        chosenValue = tree.find()
+        chose = tree.getChosenAction()
+        # print("best was:", chose, "with value:", chosenValue)
+        # sleep(0.5)
+        return chose
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -258,13 +266,13 @@ def getManhattanList(point, ls):
     
     return man_ls
 
-def checkPrune(nodeType, v, alpha, beta):
+def checkPrune(nodeType, v, alpha, beta): # checkPrune(self.agentTypes[self.id], childValue, self.alpha, self.beta):
     if nodeType == NodeType.MAXIMIZER:
-        if v >= beta:
+        if v > beta:
             return True
         return False
     elif nodeType == NodeType.MINIMIZER:
-        if v <= alpha:
+        if v < alpha:
             return True
         return False
         
@@ -276,7 +284,8 @@ class NodeType(Enum):
 
 # an abstract class
 class Node:
-    def __init__(self, myRootState, evalFunc=scoreEvaluationFunction, value=None, id=0, agentTypes=None, depth = 2, prune=False, alpha=None, beta=None):
+    def __init__(self, myRootState, evalFunc=scoreEvaluationFunction, value=None, id=0, agentTypes=None,\
+         depth = 2, prune=False, alpha=None, beta=None):
         self.myRootState = myRootState
         self.depth = depth
         self.value = value
@@ -286,31 +295,47 @@ class Node:
         self.alpha = alpha
         self.beta = beta
         self.valueSet = False
-        self.chosenList = []
+        self.chosenAction = None
         self.id = id
         self.agentTypes = agentTypes
         
     def getValue(self, id):
         if self.valueSet:
             return self.value
-        
-        if (id == 0 and self.depth == 0) or self.myRootState.isWin() or self.myRootState.isLose(): # the terminal (or pseudo terminal) nodes
+            
+        # the terminal (or pseudo terminal) nodes
+        if (id == 0 and self.depth == 0) or self.myRootState.isWin() or self.myRootState.isLose(): 
             self.value = self.evalFunc(self.myRootState)
             self.valueSet = True
+            # print("In terminal value:", self.value, "has been found, depth:", self.depth)
+            # sleep(0.1)
         else:
             legalActions = self.myRootState.getLegalActions(id)
             for action in legalActions:
                 successorState = self.myRootState.generateSuccessor(id, action)
-                givenDepth = self.depth - 1 if self.id == 0 else self.depth
-                child = Tree.makeNode(successorState, self.evalFunc, self.id, self.agentTypes, givenDepth, self.prune, self.alpha, self.beta)
+                # print("going to check action:", action, "myID:", id, "myDepth:", self.depth)
+                # sleep(0.1)
+                givenDepth = self.depth - 1 if self.id == self.myRootState.getNumAgents() - 1 else self.depth # changed here!!!
+                child = Tree.makeNode(successorState, self.evalFunc, self.id, self.agentTypes, givenDepth, self.prune,\
+                     self.alpha, self.beta)
                 self.children.append(child)
                 childValue = child.getValue((id + 1) % self.myRootState.getNumAgents())
+                # print("child value returned:", childValue, "myID:", id, "myDepth:", self.depth)
+                # sleep(0.1)
+
                 changed = self.updateValue(childValue)
-                self.valueSet = True
-                if changed or (len(self.chosenList) == 0 or (childValue == self.value and action != Directions.STOP and self.chosenList[-1] == Directions.STOP)):
-                    self.chosenList.append(action)
+                # updating chosen action
+                if changed:
+                    self.chosenAction = action
+                    self.valueSet = True
+                    # if self.depth == 3:
+                    #     print("myVal changed to:", self.value, ", depth:", self.depth)
                 if self.prune:
-                    if checkPrune(self.agentTypes[self.id], childValue, self.alpha, self.beta):
+                    if checkPrune(self.agentTypes[self.id], self.value, self.alpha, self.beta):
+                        # print("pruned, myID:", id, "myAlpha:", self.alpha, "myBeta:", self.beta, "myDepth:", self.depth)
+                        # sleep(0.1)
+                        print("pruned, self.value:", self.value, "alpha:", self.alpha, "beta:", self.beta, "myType:", self.agentTypes[self.id], "depth:", self.depth)
+
                         return self.value
                     else:
                         self.updateAlphaBeta()
@@ -324,7 +349,8 @@ class Node:
         pass # abstract method
 
 class Minimizer(Node):
-    def __init__(self, myRootState, evalFunc=scoreEvaluationFunction, value=None, id=0, agentTypes=None, depth=2, prune=False, alpha=None, beta=None):
+    def __init__(self, myRootState, evalFunc=scoreEvaluationFunction, value=None, id=0, agentTypes=None,\
+         depth=2, prune=False, alpha=None, beta=None):
         super().__init__(myRootState, evalFunc, value, id, agentTypes, depth, prune, alpha, beta)
 
     def updateValue(self, newValue):
@@ -338,7 +364,8 @@ class Minimizer(Node):
         self.beta = min(self.beta, self.value)
 
 class Maximizer(Node):
-    def __init__(self, myRootState, evalFunc=scoreEvaluationFunction, value=None, id=0, agentTypes=None, depth=2, prune=False, alpha=None, beta=None):
+    def __init__(self, myRootState, evalFunc=scoreEvaluationFunction, value=None, id=0, agentTypes=None,\
+         depth=2, prune=False, alpha=None, beta=None):
         super().__init__(myRootState, evalFunc, value, id, agentTypes, depth, prune, alpha, beta)
 
     def updateValue(self, newValue):
@@ -352,12 +379,14 @@ class Maximizer(Node):
         self.alpha = max(self.alpha, self.value)
 
 class ChanceNode(Node):
-    def __init__(self, myRootState, evalFunc=scoreEvaluationFunction, value=None, id=0, agentTypes=None, depth=2, prune=False, alpha=None, beta=None):
+    def __init__(self, myRootState, evalFunc=scoreEvaluationFunction, value=None, id=0, agentTypes=None,\
+         depth=2, prune=False, alpha=None, beta=None):
         super().__init__(myRootState, evalFunc, value, id, agentTypes, depth, prune, alpha, beta)
 
     
 class Tree:
-    def __init__(self, rootState, evalFunc=scoreEvaluationFunction, agentTypes = {0:NodeType.MAXIMIZER}, depth = 2, prune=False):
+    def __init__(self, rootState, evalFunc=scoreEvaluationFunction, agentTypes = {0:NodeType.MAXIMIZER},\
+         depth = 2, prune=False):
         self.rootState = rootState
         self.agentTypes = agentTypes
         self.depth = depth
@@ -380,7 +409,7 @@ class Tree:
         return self.root.getValue(0)
 
     def getChosenAction(self):
-        return self.root.chosenList[-1]
+        return self.root.chosenAction
 
     @classmethod
     def makeNode(cls, state, evalFunc, callerID, agentTypes, depth, prune, alpha, beta):
