@@ -9,7 +9,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "--question=q4",
+                "--question=q3",
             ],
         }
     ]

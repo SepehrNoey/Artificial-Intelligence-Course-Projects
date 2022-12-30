@@ -266,7 +266,45 @@ def betterEvaluationFunction(currentGameState):
     ghostPositions = currentGameState.getGhostPositions()
     
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    # order of badness: dieing > going to visited places > being close to ghosts
+    # order of goodness: eating dots > eating scared ghosts
+    # now , we will find the closest not eaten dot
+    from sys import maxsize
+    from statistics import pvariance
+    from statistics import mean
+    from math import sqrt
+    from random import uniform
+    
+    max_ = maxsize
+    min_ = -maxsize - 1
+    score = 0
+    ghostManList = getManhattanList(pacmanPosition, ghostPositions)
+    foodList = foods.asList()
+    foodNum = len(foodList)
+    capsulesList = currentGameState.getCapsules()
+    capsulesManList = getManhattanList(pacmanPosition, capsulesList)
+    capsulesNum = len(capsulesManList)
+    foodManList = getManhattanList(pacmanPosition, foodList)
+    minFoodDist = min(foodManList)
+    nearestFood = foodManList.index(minFoodDist)
+    minCapsuleDist = min(capsulesManList)
+    nearestCapsule = capsulesManList.index(minCapsuleDist)
+    # ghostVar = pvariance(ghostManList) if len(ghostManList) > 0 else 0
+    # foodVar = pvariance(foodManList) if len(foodManList) > 0 else 0
+    scaredMean = mean(scaredTimers) if len(scaredTimers) > 0 else 0
+    # foodDistMean = mean(foodManList) if len(foodManList) > 0 else 0
+
+    if(currentGameState.isWin()):
+        return max_
+    elif(currentGameState.isLose()):
+        return min_
+    else:
+        score += sum(ghostManList) - 15 * foodNum - 5 * sum(foodManList) \
+            - nearestFood - 10 * capsulesNum - 5 * nearestCapsule \
+            + 6 * scaredMean - uniform(0, 10) + currentGameState.getScore()
+            
+    return score
 
 # Abbreviation
 better = betterEvaluationFunction
@@ -279,7 +317,7 @@ def getManhattanList(point, ls):
     
     return man_ls
 
-def checkPrune(nodeType, v, alpha, beta): # checkPrune(self.agentTypes[self.id], childValue, self.alpha, self.beta):
+def checkPrune(nodeType, v, alpha, beta): 
     if nodeType == NodeType.MAXIMIZER:
         if v > beta:
             return True
@@ -312,24 +350,24 @@ class Node:
         self.id = id
         self.agentTypes = agentTypes
         
-    def getValue(self, id):
+    def getValue(self):
         if self.valueSet:
             return self.value
             
         # the terminal (or pseudo terminal) nodes
-        if (id == 0 and self.depth == 0) or self.myRootState.isWin() or self.myRootState.isLose(): 
+        if (self.id == 0 and self.depth == 0) or self.myRootState.isWin() or self.myRootState.isLose(): 
             self.value = self.evalFunc(self.myRootState)
             self.valueSet = True
         else:
-            legalActions = self.myRootState.getLegalActions(id)
+            legalActions = self.myRootState.getLegalActions(self.id)
             for action in legalActions:
-                successorState = self.myRootState.generateSuccessor(id, action)
-                givenDepth = self.depth - 1 if self.id == self.myRootState.getNumAgents() - 1 else self.depth # changed here!!!
-                child = Tree.makeNode(successorState, self.evalFunc, self.id, self.agentTypes, givenDepth, self.prune,\
+                successorState = self.myRootState.generateSuccessor(self.id, action)
+                givenDepth = self.depth - 1 if self.id == self.myRootState.getNumAgents() - 1 else self.depth
+                newNodeID = (self.id + 1) % self.myRootState.getNumAgents()
+                child = Tree.makeNode(successorState, self.evalFunc, newNodeID, self.agentTypes, givenDepth, self.prune,\
                      self.alpha, self.beta)
                 self.children.append(child)
-                childValue = child.getValue((id + 1) % self.myRootState.getNumAgents())
-                changed = self.updateValue(childValue)
+                changed = self.updateValue(child.getValue())
                 # updating chosen action
                 if changed:
                     self.chosenAction = action
@@ -416,27 +454,24 @@ class Tree:
             self.root = Tree.makeNode(rootState, evalFunc, 0, agentTypes, self.depth - 1, self.prune, alpha, beta)
 
     def find(self):
-        return self.root.getValue(0)
+        return self.root.getValue()
 
     def getChosenAction(self):
         return self.root.chosenAction
 
     @classmethod
-    def makeNode(cls, state, evalFunc, callerID, agentTypes, depth, prune, alpha, beta):
+    def makeNode(cls, state, evalFunc, newNodeID, agentTypes, depth, prune, alpha, beta):
         from sys import maxsize
         node = None
-        type = agentTypes[callerID]
-        newID = (callerID + 1) % state.getNumAgents()
+        type = agentTypes[newNodeID]
         if type == NodeType.MAXIMIZER:
-            node = Maximizer(state, evalFunc, -maxsize -1, newID, agentTypes, depth, prune, alpha, beta)
+            node = Maximizer(state, evalFunc, -maxsize -1, newNodeID, agentTypes, depth, prune, alpha, beta)
         elif type == NodeType.MINIMIZER:
-            node = Minimizer(state, evalFunc, maxsize, newID, agentTypes, depth, prune, alpha, beta)
+            node = Minimizer(state, evalFunc, maxsize, newNodeID, agentTypes, depth, prune, alpha, beta)
         elif type == NodeType.CHANCE_NODE:
-            node = ChanceNode(state, evalFunc, 0, newID, agentTypes, depth, prune, alpha, beta)
+            node = ChanceNode(state, evalFunc, 0, newNodeID, agentTypes, depth, prune, alpha, beta)
         else:
             print("Invalid NodeType is entered.")
             exit(-1)
 
         return node
-
-            
