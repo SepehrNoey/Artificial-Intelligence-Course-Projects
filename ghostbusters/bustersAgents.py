@@ -154,7 +154,7 @@ class GreedyBustersAgent(BustersAgent):
         
         nextAction = Directions.STOP 
         minDist = bigNum
-        for action in gameState.getLegalPacmanActions():
+        for action in legal:
             nextPos = Actions.getSuccessor(pacmanPosition, action)
             for ghostIndex in range(numberOfGhosts):
                 ghostp = None
