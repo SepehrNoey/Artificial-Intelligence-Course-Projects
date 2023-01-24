@@ -493,7 +493,7 @@ class JointParticleFilter(ParticleFilter):
             prob = 1.
             for i in range(self.numGhosts):
                 prob *= self.getObservationProb(observation[i], gameState.getPacmanPosition(), \
-                     particle[i], self.getJailPosition(self.numGhosts))
+                     particle[i], self.getJailPosition(i))
             distro[particle] += prob
 
         belief_values = distro.values()
@@ -517,9 +517,9 @@ class JointParticleFilter(ParticleFilter):
             # now loop through and update each entry in newParticle...
             "*** YOUR CODE HERE ***"
             eParticles = enumerate(newParticle)
-            for particleX, _ in eParticles:
-                newParticle[particleX] = self.getPositionDistribution(gameState, oldParticle, particleX,
-                                                                      self.ghostAgents[particleX]).sample()
+            for i, _ in eParticles:
+                newParticle[i] = self.getPositionDistribution(gameState, oldParticle, i,
+                                                                      self.ghostAgents[i]).sample()
 
             """*** END YOUR CODE HERE ***"""
             newParticles.append(tuple(newParticle))
