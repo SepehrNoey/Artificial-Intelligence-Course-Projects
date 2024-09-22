@@ -2,35 +2,6 @@
 
 This repository contains the course projects for the "Principles and Applications of Artificial Intelligence" course. Many of these projects are derived from the [Pacman Projects of the Berkeley AI course](http://ai.berkeley.edu/project_overview.html). These projects cover core AI concepts such as search algorithms, multi-agent systems, reinforcement learning, and probabilistic reasoning.
 
-## Concepts and Techniques
-
-The following AI concepts were implemented in these projects:
-
-1. **Search Algorithms**:
-   - **Breadth-First Search (BFS)**
-   - **Depth-First Search (DFS)**
-   - **Uniform Cost Search (UCS)**
-   - **A* (A Star) Search**
-   - **Greedy Search**
-
-2. **Markov Decision Processes (MDPs)** and **Constraint Satisfaction Problems (CSPs)**:
-   - Solving decision-making problems where outcomes are partly random and partly under the control of an agent.
-   - Implementing constraints and solving them efficiently using techniques like backtracking and constraint propagation.
-
-3. **Multi-Agent Systems**:
-   - **MiniMax Algorithm**: Finding the optimal strategy for agents by minimizing the possible loss.
-   - **Alpha-Beta Pruning**: Optimizing MiniMax by pruning branches that don't need to be explored (used with a depth of 5 in the demo).
-
-4. **Reinforcement Learning**:
-   - **Value Iteration**: Dynamic programming for computing optimal policies in MDPs.
-   - **Q-Learning**: Model-free learning where agents learn to act optimally based on rewards.
-   - **Approximate Q-Learning**: Extending Q-learning with function approximation for larger state spaces.
-
-5. **Bayesian Networks**:
-   - Probabilistic graphical models representing variables and their conditional dependencies through directed acyclic graphs.
-
----
-
 ## Project Demos
 
 ### 1. A* Search in Pacman to Find Food
@@ -60,3 +31,32 @@ In this simple game, a virtual crawler learns to move using reinforcement learni
 **Demo**:  
 
 <video src="https://github.com/user-attachments/assets/968cfe0e-2aed-474f-8787-aa0f1f906eec">|
+
+---
+
+## Concepts and Techniques
+
+The following AI concepts were implemented in these projects:
+
+1. **Search Algorithms**:
+   - **Breadth-First Search (BFS)**
+   - **Depth-First Search (DFS)**
+   - **Uniform Cost Search (UCS)**
+   - **A* (A Star) Search**
+   - **Greedy Search**
+
+2. **Markov Decision Processes (MDPs)** and **Constraint Satisfaction Problems (CSPs)**:
+   - Solving decision-making problems where outcomes are partly random and partly under the control of an agent.
+   - Implementing constraints and solving them efficiently using techniques like backtracking and constraint propagation.
+
+3. **Multi-Agent Systems**:
+   - **MiniMax Algorithm**: Finding the optimal strategy for agents by minimizing the possible loss.
+   - **Alpha-Beta Pruning**: Optimizing MiniMax by pruning branches that don't need to be explored (used with a depth of 5 in the demo).
+
+4. **Reinforcement Learning**:
+   - **Value Iteration**: Dynamic programming for computing optimal policies in MDPs.
+   - **Q-Learning**: Model-free learning where agents learn to act optimally based on rewards.
+   - **Approximate Q-Learning**: Extending Q-learning with function approximation for larger state spaces.
+
+5. **Bayesian Networks**:
+   - Probabilistic graphical models representing variables and their conditional dependencies through directed acyclic graphs.
